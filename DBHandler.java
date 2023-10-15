@@ -1,0 +1,244 @@
+package com.example.bizwallet3;
+
+import android.annotation.SuppressLint;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class DBHandler extends SQLiteOpenHelper {
+
+    // creating a constant variables for our database.
+    // below variable is for our database name.
+    private static final String DB_NAME = "expensedb";
+
+    // below int is our database version
+    private static final int DB_VERSION = 1;
+
+    // below variable is for our table name.
+    private static final String TABLE_NAME = "myexpenses";
+
+    // below variable is for our id column.
+    private static final String ID_COL = "id";
+
+    // below variable is for our course name column
+    private static final String TYPE_COL = "type";
+
+    // below variable id for our course duration column.
+    private static final String COMPLETION_COL = "completion";
+
+    // below variable is for our course tracks column.
+    private static final String AMOUNT_COL = "amount";
+
+    private int marketingNum = 0,rentNum = 0,equipmentNum = 0,employeeNeedsNum = 0,otherNum = 0, totalEntries = 0,completeNum,pendingNum;
+
+    // creating a constructor for our database handler.
+    public DBHandler(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+    }
+
+    // below method is for creating a database by running a sqlite query
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        // on below line we are creating
+        // an sqlite query and we are
+        // setting our column names
+        // along with their data types.
+        String query = "CREATE TABLE " + TABLE_NAME + " ("
+                + ID_COL + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + AMOUNT_COL + " TEXT,"
+                + TYPE_COL + " TEXT,"
+                + COMPLETION_COL + " TEXT)";
+
+        // at last we are calling a exec sql
+        // method to execute above sql query
+        db.execSQL(query);
+    }
+
+    // this method is use to add new course to our sqlite database.
+    public void addNewExpense(String expenseAmount, String expenseType, String expenseCompletion) {
+
+        // on below line we are creating a variable for
+        // our sqlite database and calling writable method
+        // as we are writing data in our database.
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // on below line we are creating a
+        // variable for content values.
+        ContentValues values = new ContentValues();
+
+        // on below line we are passing all values
+        // along with its key and value pair.
+        values.put(AMOUNT_COL, expenseAmount);
+        values.put(TYPE_COL, expenseType);
+        values.put(COMPLETION_COL, expenseCompletion);
+
+
+        // after adding all values we are passing
+        // content values to our table.
+        db.insert(TABLE_NAME, null, values);
+
+        // at last we are closing our
+        // database after adding database.
+        db.close();
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // this method is called to check if the table exists already.
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        onCreate(db);
+    }
+
+
+    @SuppressLint("Range")
+    public double getTotalAmount(){
+        double data = 0;
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + AMOUNT_COL + " FROM " + TABLE_NAME, null);
+        if(cursor.moveToFirst()){
+            do{
+                data += Double.parseDouble(cursor.getString(cursor.getColumnIndex(AMOUNT_COL)));
+
+            } while (cursor.moveToNext());
+        }
+        return data;
+    }
+
+    @SuppressLint("Range")
+    public void addEntryTypeAmount(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + TYPE_COL  +  " FROM " + TABLE_NAME, null);
+        if(cursor.moveToFirst()){
+            do{
+                totalEntries += 1;
+                String str = cursor.getString(cursor.getColumnIndex(TYPE_COL));
+                if(str.equals("Marketing")){
+                    marketingNum += 1;
+                }
+                else if(str.equals("Rent")){
+                    rentNum +=1;
+                }
+                else if(str.equals("Equipment")){
+                    equipmentNum += 1;
+                }
+                else if(str.equals("Employee Needs")){
+                    employeeNeedsNum += 1;
+                }
+                else if(str.equals("Other")){
+                    otherNum += 1;
+                }
+
+            } while (cursor.moveToNext());
+        }
+        System.out.println("m " + marketingNum);
+        System.out.println("m " + rentNum);
+        System.out.println("m " + equipmentNum);
+        System.out.println("m " + employeeNeedsNum);
+        System.out.println("m " + otherNum);
+    }
+
+
+//    @SuppressLint("Range")
+//    public ArrayList<String> getPendingPrices(){
+//        ArrayList<String> pendingPrices = new ArrayList<>();
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        Cursor cursor = db.rawQuery("SELECT " + COMPLETION_COL +  " FROM " + TABLE_NAME, null);
+//        if(cursor.moveToFirst()){
+//            do{
+//                @SuppressLint("Range") String str = cursor.getString(cursor.getColumnIndex(COMPLETION_COL));
+//                if(str.equals("Pending")){
+//                    pendingPrices.add(cursor.getString(cursor.getColumnIndex(AMOUNT_COL)));
+//                }
+//            } while (cursor.moveToNext());
+//        }
+//        return pendingPrices;
+//    }
+
+    public double getMarketingNum(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + TYPE_COL  +  " FROM " + TABLE_NAME, null);
+        if(cursor.moveToFirst()){
+            do{
+                @SuppressLint("Range") String str = cursor.getString(cursor.getColumnIndex(TYPE_COL));
+                if(str.equals("Marketing")) {
+                    marketingNum += 1;
+                }
+            } while (cursor.moveToNext());
+        }
+        return marketingNum;
+    }
+
+    public double getRentNum(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + TYPE_COL  +  " FROM " + TABLE_NAME, null);
+        if(cursor.moveToFirst()){
+            do{
+                @SuppressLint("Range") String str = cursor.getString(cursor.getColumnIndex(TYPE_COL));
+                if(str.equals("Rent")) {
+                    rentNum += 1;
+                }
+            } while (cursor.moveToNext());
+        }
+        return rentNum;
+    }
+
+    public double getEquipmentNum(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + TYPE_COL  +  " FROM " + TABLE_NAME, null);
+        if(cursor.moveToFirst()){
+            do{
+                @SuppressLint("Range") String str = cursor.getString(cursor.getColumnIndex(TYPE_COL));
+                if(str.equals("Equipment")) {
+                    equipmentNum += 1;
+                }
+            } while (cursor.moveToNext());
+        }
+        return equipmentNum;
+    }
+
+    public double getEmployeeNeedsNum(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + TYPE_COL  +  " FROM " + TABLE_NAME, null);
+        if(cursor.moveToFirst()){
+            do{
+                @SuppressLint("Range") String str = cursor.getString(cursor.getColumnIndex(TYPE_COL));
+                if(str.equals("Employee Needs")) {
+                    employeeNeedsNum += 1;
+                }
+            } while (cursor.moveToNext());
+        }
+        return employeeNeedsNum;
+    }
+
+    public double getOtherNum(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " + TYPE_COL  +  " FROM " + TABLE_NAME, null);
+        if(cursor.moveToFirst()){
+            do{
+                @SuppressLint("Range") String str = cursor.getString(cursor.getColumnIndex(TYPE_COL));
+                if(str.equals("Other")) {
+                    otherNum += 1;
+                }
+            } while (cursor.moveToNext());
+        }
+        return otherNum;
+    }
+
+
+    public void delete(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_NAME,null,null);
+        db.close();
+    }
+
+
+}
+
+
